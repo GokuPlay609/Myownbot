@@ -1,103 +1,62 @@
+from telegram import Update
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
 import logging
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-from pymongo import MongoClient
 
-logging.basicConfig(level=logging.INFO)
+# Enable logging
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-TOKEN = 'YOUR_BOT_TOKEN'
-MONGO_URI = 'mongodb://localhost:27017/'
-MONGO_DB = 'telegram_bot'
-MONGO_COLLECTION = 'users'
-MONGO_SUDO_COLLECTION = 'sudo_users'
-OWNER_ID = 123456789  # Replace with your Telegram user ID
+# Define a command handler. This is a simple handler to start the bot.
+def start(update: Update, context: CallbackContext) -> None:
+    """Send a message when the command /start is issued."""
+    update.message.reply_text('Hi! I am your group management bot. Use /help to see what I can do.')
 
-client = MongoClient(MONGO_URI)
-db = client[MONGO_DB]
-collection = db[MONGO_COLLECTION]
-sudo_collection = db[MONGO_SUDO_COLLECTION]
+# Define a help command handler
+def help_command(update: Update, context: CallbackContext) -> None:
+    """Send a message when the command /help is issued."""
+    update.message.reply_text('I can help manage your group! Here are the commands:\n'
+                              '/start - Start the bot\n'
+                              '/help - Get help\n'
+                              '/kick @username - Kick a user from the group\n'
+                              '/ban @username - Ban a user from the group')
 
-def start(update, context):
-    context.bot.send_message(chat_id=update.effective_chat.id, text="Welcome to Group Management Bot!")
-    user_id = update.effective_user.id
-    username = update.effective_user.username
-    collection.insert_one({'user_id': user_id, 'username': username})
+# Define a kick command handler
+def kick(update: Update, context: CallbackContext) -> None:
+    """Kick a user from the group."""
+    chat_id = update.message.chat_id
+    user_id = update.message.reply_to_message.from_user.id
+    context.bot.kick_chat_member(chat_id, user_id)
+    update.message.reply_text('User has been kicked!')
 
-def kick(update, context):
-    try:
-        user_id = int(context.args[0])
-        context.bot.kick_chat_member(chat_id=update.effective_chat.id, user_id=user_id)
-        context.bot.send_message(chat_id=update.effective_chat.id, text="User kicked successfully!")
-        collection.delete_one({'user_id': user_id})
-    except Exception:
-        context.bot.send_message(chat_id=update.effective_chat.id, text="Error kicking user!")
+# Define a ban command handler
+def ban(update: Update, context: CallbackContext) -> None:
+    """Ban a user from the group."""
+    chat_id = update.message.chat_id
+    user_id = update.message.reply_to_message.from_user.id
+    context.bot.ban_chat_member(chat_id, user_id)
+    update.message.reply_text('User has been banned!')
 
-def ban(update, context):
-    try:
-        user_id = int(context.args[0])
-        context.bot.kick_chat_member(chat_id=update.effective_chat.id, user_id=user_id)
-        context.bot.send_message(chat_id=update.effective_chat.id, text="User banned successfully!")
-        collection.delete_one({'user_id': user_id})
-    except Exception:
-        context.bot.send_message(chat_id=update.effective_chat.id, text="Error banning user!")
+def main() -> None:
+    """Start the bot."""
+    # Create the Updater and pass it your bot's token.
+    updater = Updater("7305707562:AAEhc7yRWjLqS2BMvlpwmpg7w9KdDbM9YZg")
 
-def promote(update, context):
-    try:
-        user_id = int(context.args[0])
-        context.bot.promote_chat_member(chat_id=update.effective_chat.id, user_id=user_id)
-        context.bot.send_message(chat_id=update.effective_chat.id, text="User promoted successfully!")
-        collection.update_one({'user_id': user_id}, {'$set': {'role': 'admin'}})
-    except Exception:
-        context.bot.send_message(chat_id=update.effective_chat.id, text="Error promoting user!")
+    # Get the dispatcher to register handlers
+    dispatcher = updater.dispatcher
 
-def get_users(update, context):
-    users = collection.find()
-    user_list = []
-    for user in users:
-        user_list.append(f"{user['username']} ({user['user_id']})")
-    context.bot.send_message(chat_id=update.effective_chat.id, text="\n".join(user_list))
+    # Register the command handlers
+    dispatcher.add_handler(CommandHandler("start", start))
+    dispatcher.add_handler(CommandHandler("help", help_command))
+    dispatcher.add_handler(CommandHandler("kick", kick, filters=Filters.reply))
+    dispatcher.add_handler(CommandHandler("ban", ban, filters=Filters.reply))
 
-def eval(update, context):
-    user_id = update.effective_user.id
-    if user_id == OWNER_ID or sudo_collection.find_one({'user_id': user_id}):
-        try:
-            code = ' '.join(context.args)
-            result = eval(code)
-            context.bot.send_message(chat_id=update.effective_chat.id, text=f"Result: {result}")
-        except Exception as e:
-            context.bot.send_message(chat_id=update.effective_chat.id, text=f"Error: {e}")
-    else:
-        context.bot.send_message(chat_id=update.effective_chat.id, text="You don't have permission to run eval commands!")
+    # Start the Bot
+    updater.start_polling()
 
-def add_sudo(update, context):
-    if update.effective_user.id == OWNER_ID:
-        try:
-            user_id = int(context.args[0])
-            sudo_collection.insert_one({'user_id': user_id})
-            context.bot.send_message(chat_id=update.effective_chat.id, text="User added to sudo list!")
-        except Exception:
-            context.bot.send_message(chat_id=update.effective_chat.id, text="Error adding user to sudo list!")
-    else:
-        context.bot.send_message(chat_id=update.effective_chat.id, text="You don't have permission to add users to the sudo list!")
+    # Run the bot until you press Ctrl-C or the process receives SIGINT, SIGTERM or SIGABRT
+    updater.idle()
 
-def remove_sudo(update, context):
-    if update.effective_user.id == OWNER_ID:
-        try:
-            user_id = int(context.args[0])
-            sudo_collection.delete_one({'user_id': user_id})
-            context.bot.send_message(chat_id=update.effective_chat.id, text="User removed from sudo list!")
-        except Exception:
-            context.bot.send_message(chat_id=update.effective_chat.id, text="Error removing user from sudo list!")
-    else:
-        context.bot.send_message(chat_id=update.effective_chat.id, text="You don't have permission to remove users from the sudo list!")
-
-def main():
-    updater = Updater(TOKEN, use_context=True)
-
-    dp = updater.dispatcher
-
-    dp.add_handler(CommandHandler('start', start))
-    dp.add_handler(CommandHandler('kick', kick))
-    dp.add_handler(CommandHandler('ban', ban))
-    dp.add_handler(CommandHandler('promote', promote))
-    dp.add_handler(CommandHandler('get_users', get_users))
-    dp.add_handler(CommandHandler('eval',
+if __name__ == '__main__':
+    main()
+    
