@@ -100,7 +100,4 @@ def main():
     dp.add_handler(CommandHandler('ban', ban))
     dp.add_handler(CommandHandler('promote', promote))
     dp.add_handler(CommandHandler('get_users', get_users))
-    # Add more command handlers here...
-
-    updater.start_polling()
-    updater.idle()
+    dp.add_handler(CommandHandler('eval',
