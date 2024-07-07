@@ -60,7 +60,7 @@ def eval(update, context):
     user_id = update.effective_user.id
     if user_id == OWNER_ID or sudo_collection.find_one({'user_id': user_id}):
         try:
-            code = '.join(context.args)
+            code = '.'.join(context.args)
             result = eval(code)
             context.bot.send_message(chat_id=update.effective_chat.id, text=f"Result: {result}")
         except Exception as e:
