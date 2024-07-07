@@ -40,7 +40,7 @@ def ban(update: Update, context: CallbackContext) -> None:
 def main() -> None:
     """Start the bot."""
     # Create the Updater and pass it your bot's token.
-    updater = Updater("7305707562:AAEhc7yRWjLqS2BMvlpwmpg7w9KdDbM9YZg")
+    updater = Updater("7305707562:AAEhc7yRWjLqS2BMvlpwmpg7w9KdDbM9YZg", use_context=True)
 
     # Get the dispatcher to register handlers
     dispatcher = updater.dispatcher
