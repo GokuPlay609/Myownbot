@@ -5,10 +5,10 @@ from pymongo import MongoClient
 logging.basicConfig(level=logging.INFO)
 
 TOKEN = 'YOUR_BOT_TOKEN'
-MONGO_URI = 'ongodb://localhost:27017/'
+MONGO_URI = 'mongodb://localhost:27017/'
 MONGO_DB = 'telegram_bot'
 MONGO_COLLECTION = 'users'
-MONGO_SUDO_COLLECTION = 'udo_users'
+MONGO_SUDO_COLLECTION = 'sudo_users'
 OWNER_ID = 123456789  # Replace with your Telegram user ID
 
 client = MongoClient(MONGO_URI)
@@ -60,7 +60,7 @@ def eval(update, context):
     user_id = update.effective_user.id
     if user_id == OWNER_ID or sudo_collection.find_one({'user_id': user_id}):
         try:
-            code = '.'.join(context.args)
+            code = ' '.join(context.args)
             result = eval(code)
             context.bot.send_message(chat_id=update.effective_chat.id, text=f"Result: {result}")
         except Exception as e:
@@ -99,4 +99,8 @@ def main():
     dp.add_handler(CommandHandler('kick', kick))
     dp.add_handler(CommandHandler('ban', ban))
     dp.add_handler(CommandHandler('promote', promote))
-    dp.add_handler(CommandHandler('get_users', get_users
+    dp.add_handler(CommandHandler('get_users', get_users))
+    # Add more command handlers here...
+
+    updater.start_polling()
+    updater.idle()
