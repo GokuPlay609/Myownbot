@@ -14,6 +14,9 @@ logger = logging.getLogger(__name__)
 def start_command(update: Update, context: CallbackContext):
     update.message.reply_text('Hello! I am your group management bot.')
 
+def error_handler(update: Update, context: CallbackContext):
+    logger.error(msg="Exception while handling an update:", exc_info=context.error)
+
 def main():
     updater = Updater(token=config.TOKEN, use_context=True)
     dispatcher = updater.dispatcher
@@ -36,6 +39,9 @@ def main():
     dispatcher.add_handler(CommandHandler("myinfo", myinfo_command))
 
     dispatcher.add_handler(MessageHandler(Filters.text & (~Filters.command), myinfo_command))
+
+    # Log all errors
+    dispatcher.add_error_handler(error_handler)
 
     updater.start_polling()
     updater.idle()
