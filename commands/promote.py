@@ -1,6 +1,5 @@
 from telegram import Update, ChatPermissions
 from telegram.ext import CallbackContext
-import config
 
 def promote_command(update: Update, context: CallbackContext):
     if update.message.chat.type not in ['group', 'supergroup']:
@@ -11,19 +10,23 @@ def promote_command(update: Update, context: CallbackContext):
         update.message.reply_text("Please provide the username or user ID of the person you want to promote.")
         return
     
-    username = context.args[0]
     user_id = None
+    username_or_id = context.args[0]
 
-    # Fetch user ID from username
-    if username.startswith('@'):
+    # Fetch user ID from username or use directly if numeric
+    if username_or_id.startswith('@'):
         try:
-            user = context.bot.get_chat_member(update.message.chat.id, username)
+            user = context.bot.get_chat_member(update.message.chat.id, username_or_id)
             user_id = user.user.id
         except Exception as e:
             update.message.reply_text("Couldn't find the user. Please ensure the username is correct.")
             return
     else:
-        user_id = int(username)
+        try:
+            user_id = int(username_or_id)
+        except ValueError:
+            update.message.reply_text("Invalid user ID. Please provide a valid user ID or username.")
+            return
 
     # Check if the user issuing the command is an admin
     chat_member = context.bot.get_chat_member(update.message.chat.id, update.message.from_user.id)
