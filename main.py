@@ -28,6 +28,8 @@ def main():
     from commands.ban import ban_command
     from commands.kick import kick_command
     from commands.mute import mute_command
+    from commands.unmute import unmute_command
+    from commands.promote import promote_command
     from commands.myinfo import myinfo_command
 
     dispatcher.add_handler(CommandHandler("start", start_command))
@@ -36,6 +38,8 @@ def main():
     dispatcher.add_handler(CommandHandler("ban", ban_command))
     dispatcher.add_handler(CommandHandler("kick", kick_command))
     dispatcher.add_handler(CommandHandler("mute", mute_command, pass_args=True))
+    dispatcher.add_handler(CommandHandler("unmute", unmute_command))
+    dispatcher.add_handler(CommandHandler("promote", promote_command, pass_args=True))
     dispatcher.add_handler(CommandHandler("myinfo", myinfo_command))
 
     dispatcher.add_handler(MessageHandler(Filters.text & (~Filters.command), myinfo_command))
