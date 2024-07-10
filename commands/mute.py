@@ -1,5 +1,5 @@
 import datetime
-from telegram import Update
+from telegram import Update, ChatPermissions
 from telegram.ext import CallbackContext
 
 def mute_command(update: Update, context: CallbackContext):
@@ -24,10 +24,13 @@ def mute_command(update: Update, context: CallbackContext):
     duration = int(context.args[0])
     until_date = datetime.datetime.now() + datetime.timedelta(seconds=duration)
     user_id = update.message.reply_to_message.from_user.id
+    
+    permissions = ChatPermissions(can_send_messages=False)
+    
     context.bot.restrict_chat_member(
         chat_id=update.message.chat.id,
         user_id=user_id,
-        permissions={'can_send_messages': False},
+        permissions=permissions,
         until_date=until_date
     )
     update.message.reply_text(f"User has been muted for {duration} seconds.")
