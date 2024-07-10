@@ -8,7 +8,8 @@ def eval_command(update: Update, context: CallbackContext):
         return
 
     try:
-        result = eval(' '.join(context.args))
+        code = ' '.join(context.args)
+        result = eval(code)
         update.message.reply_text(f"Result: {result}")
     except Exception as e:
         update.message.reply_text(f"Error: {e}")
