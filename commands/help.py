@@ -1,11 +1,15 @@
 from telegram import Update
-from telegram.ext import ContextTypes
+from telegram.ext import CallbackContext
 
-async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+def help_command(update: Update, context: CallbackContext):
     help_text = """
     Available commands:
     /start - Start the bot
-    /help - Show this help message
+    /help - Get help
+    /eval - Evaluate Python code (admin only)
+    /ban - Ban a user
+    /kick - Kick a user
+    /mute - Mute a user for a specified duration
+    /myinfo - Get your user information
     """
-    await update.message.reply_text(help_text)
-  
+    update.message.reply_text(help_text)
