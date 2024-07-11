@@ -1,13 +1,12 @@
 from telegram import Update
-from telegram.ext import ContextTypes
+from telegram.ext import CallbackContext
 
-async def modules_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    active_modules = [
-        "start", "ban", "kick", "mute", "unmute", "myinfo", "eval", "promote"
-        # Add more command names as needed
+async def modules_command(update: Update, context: CallbackContext):
+    active_commands = [
+        "start", "help", "eval", "ban", "kick", "mute", "unmute", "promote", "myinfo"
+        # Add more commands as needed
     ]
-
-    module_list = "\n".join(active_modules)
-    message = f"Active modules/commands:\n\n{module_list}"
+    command_list = "\n".join(active_commands)
+    message = f"Active commands:\n\n{command_list}"
 
     await update.message.reply_text(message)
