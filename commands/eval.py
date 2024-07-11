@@ -1,6 +1,6 @@
 import logging
 import io
-from telegram import Update, ChatPermissions
+from telegram import Update
 from telegram.ext import CallbackContext
 import config
 
@@ -8,21 +8,27 @@ logger = logging.getLogger(__name__)
 
 def eval_command(update: Update, context: CallbackContext):
     if update.message.from_user.id != config.OWNER_ID:
-        update.message.reply_text("You don't have permission to use this command.")
+        update.message.reply_text("You do not have permission to use this command.")
         return
 
     try:
-        code = ' '.join(context.args)
-        result = str(eval(code))
-        logger.info("Executed eval command by user %s: %s", update.message.from_user.id, code)
+        code = update.message.text.split(' ', 1)[1]
+    except IndexError:
+        update.message.reply_text("Please provide the code to evaluate.")
+        return
 
-        if len(result) > 4095:
-            with io.BytesIO(result.encode()) as file:
-                file.name = "eval.txt"
-                update.message.reply_document(file)
-        else:
-            update.message.reply_text(f"Result:\n{result}")
+    try:
+        # Capture the output of the eval command
+        old_stdout = io.StringIO()
+        exec(code, {'__builtins__': {}})
+        result = old_stdout.getvalue()
+        old_stdout.close()
+        
+        if len(result) == 0:
+            result = "Code executed successfully with no output."
 
+        update.message.reply_text(f"Output:\n{result}")
     except Exception as e:
-        logger.error("Error executing eval command: %s", e)
-        update.message.reply_text(f"Error: {e}")
+        logger.error(f"Error executing eval command: {e}")
+        update.message.reply_text(f"Error executing eval command: {e}")
+
