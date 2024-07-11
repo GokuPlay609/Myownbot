@@ -46,6 +46,7 @@ def main():
     from commands.unmute import unmute_command
     from commands.promote import promote_command
     from commands.myinfo import myinfo_command, count_messages
+    from commands.modules import modules_command
 
     dispatcher.add_handler(CommandHandler("start", start_command))
     dispatcher.add_handler(CommandHandler("help", help_command))
@@ -56,7 +57,9 @@ def main():
     dispatcher.add_handler(CommandHandler("unmute", unmute_command))
     dispatcher.add_handler(CommandHandler("promote", promote_command, pass_args=True))
     dispatcher.add_handler(CommandHandler("myinfo", myinfo_command))
+    dispatcher.add_handler(CommandHandler("modules", modules_command))
     dispatcher.add_handler(MessageHandler(Filters.text & (~Filters.command), count_messages))
+    
 
     # Log all errors
     dispatcher.add_error_handler(error_handler)
