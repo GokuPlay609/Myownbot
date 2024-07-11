@@ -56,8 +56,14 @@ def eval_command(update: Update, context: CallbackContext):
         
         if len(result) == 0:
             result = "Code executed successfully with no output."
-
-        update.message.reply_text(f"Output:\n{result}")
+        
+        # Send result as text file if too long
+        if len(result) > 4096:
+            with io.BytesIO(result.encode()) as file:
+                file.name = "eval_result.txt"
+                update.message.reply_document(document=file)
+        else:
+            update.message.reply_text(f"Output:\n{result}")
     except Exception as e:
         logger.error(f"Error executing eval command: {e}")
         update.message.reply_text(f"Error executing eval command: {e}")
