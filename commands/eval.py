@@ -20,7 +20,37 @@ def eval_command(update: Update, context: CallbackContext):
     try:
         # Capture the output of the eval command
         old_stdout = io.StringIO()
-        exec(code, {'__builtins__': {}})
+        exec(code, {
+            '__builtins__': {
+                'print': print,
+                'range': range,
+                'len': len,
+                'str': str,
+                'int': int,
+                'float': float,
+                'bool': bool,
+                'list': list,
+                'dict': dict,
+                'set': set,
+                'tuple': tuple,
+                'type': type,
+                'isinstance': isinstance,
+                'issubclass': issubclass,
+                'dir': dir,
+                'help': help,
+                'abs': abs,
+                'min': min,
+                'max': max,
+                'sum': sum,
+                'sorted': sorted,
+                'reversed': reversed,
+                'enumerate': enumerate,
+                'zip': zip,
+                'map': map,
+                'filter': filter,
+                'reduce': None  # Add more built-ins as necessary
+            }
+        }, {'print': lambda *args: old_stdout.write(' '.join(map(str, args)) + '\n')})
         result = old_stdout.getvalue()
         old_stdout.close()
         
