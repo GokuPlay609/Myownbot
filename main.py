@@ -1,6 +1,8 @@
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
+from telegram.error import NetworkError, TelegramError
 import logging
+import time
 import config
 
 # Set up logging
@@ -16,6 +18,19 @@ def start_command(update: Update, context: CallbackContext):
 
 def error_handler(update: Update, context: CallbackContext):
     logger.error(msg="Exception while handling an update:", exc_info=context.error)
+
+def handle_network_error(updater):
+    while True:
+        try:
+            updater.start_polling()
+            updater.idle()
+            break
+        except NetworkError as e:
+            logger.error(f"NetworkError occurred: {e}. Retrying in 5 seconds...")
+            time.sleep(5)
+        except TelegramError as e:
+            logger.error(f"TelegramError occurred: {e}. Retrying in 5 seconds...")
+            time.sleep(5)
 
 def main():
     updater = Updater(token=config.TOKEN, use_context=True)
@@ -47,8 +62,7 @@ def main():
     # Log all errors
     dispatcher.add_error_handler(error_handler)
 
-    updater.start_polling()
-    updater.idle()
+    handle_network_error(updater)
 
 if __name__ == '__main__':
     main()
